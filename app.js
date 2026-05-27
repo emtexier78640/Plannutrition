@@ -23,6 +23,9 @@ let state = {
   customRecipes: []
 };
 
+// Suivi du dernier jour actif pour le défilement auto
+let lastActiveDay = "";
+
 // Initialiser l'état vide pour chaque jour
 function initializeState() {
   const initialDays = {};
@@ -437,9 +440,13 @@ function renderApp() {
     if (tabBtn) {
       // Activer l'onglet en cours
       if (day === activeDayName) {
-        tabBtn.className = "px-4 py-3 text-sm font-semibold rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 flex flex-col items-center justify-center transition-all duration-200";
+        tabBtn.className = "px-4 py-3 text-sm font-semibold rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 flex flex-col items-center justify-center min-w-[90px] shrink-0 transition-all duration-200";
+        if (state.activeDay !== lastActiveDay) {
+          // Défilement automatique vers l'onglet actif
+          tabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
       } else {
-        tabBtn.className = "px-4 py-3 text-sm font-medium rounded-xl bg-slate-800/40 text-slate-400 hover:bg-slate-800/80 hover:text-white border border-slate-700/20 flex flex-col items-center justify-center transition-all duration-200";
+        tabBtn.className = "px-4 py-3 text-sm font-medium rounded-xl bg-slate-800/40 text-slate-400 hover:bg-slate-800/80 hover:text-white border border-slate-700/20 flex flex-col items-center justify-center min-w-[90px] shrink-0 transition-all duration-200";
       }
 
       // Pastille de complétion sur l'onglet
@@ -528,7 +535,7 @@ function renderApp() {
                   </div>
                   <button 
                     onclick="deleteSupplement('${activeDayName}', '${supp.id}')" 
-                    class="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                    class="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition-all cursor-pointer opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex items-center justify-center shrink-0"
                     title="Supprimer"
                   >
                     🗑️
@@ -544,8 +551,8 @@ function renderApp() {
         const isEaten = meal.eaten;
         const scale = meal.scale !== undefined ? meal.scale : 1.0;
         const cardClass = isEaten 
-          ? "glass-panel rounded-2xl p-5 border-emerald-500/40 bg-emerald-950/10 relative transition-all duration-300 animate-fade-in flex flex-col justify-between" 
-          : "glass-panel glass-panel-hover rounded-2xl p-5 border border-slate-800/80 relative transition-all duration-300 animate-fade-in flex flex-col justify-between";
+          ? "glass-panel rounded-2xl p-4 sm:p-5 border-emerald-500/40 bg-emerald-950/10 relative transition-all duration-300 animate-fade-in flex flex-col justify-between" 
+          : "glass-panel glass-panel-hover rounded-2xl p-4 sm:p-5 border border-slate-800/80 relative transition-all duration-300 animate-fade-in flex flex-col justify-between";
 
         // Calculer les macros à l'échelle
         const cal = Math.round(recipe.calories * scale);
@@ -632,7 +639,7 @@ function renderApp() {
       } else {
         // Version simplifiée/vide
         mealsContainer.innerHTML += `
-          <div class="glass-panel rounded-2xl p-5 border border-dashed border-slate-700/50 relative transition-all duration-300 animate-fade-in flex flex-col justify-between min-h-[220px]" id="meal-card-${mealType}">
+          <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-dashed border-slate-700/50 relative transition-all duration-300 animate-fade-in flex flex-col justify-between min-h-[220px]" id="meal-card-${mealType}">
             <div>
               <!-- Type de Repas & Action -->
               <div class="flex items-center justify-between mb-4">
@@ -690,6 +697,9 @@ function renderApp() {
   
   const totalDayFat = document.getElementById("total-day-fat");
   if (totalDayFat) totalDayFat.innerText = `${Math.round(metrics.consumed.fat)}g`;
+
+  // Enregistrer le dernier jour actif
+  lastActiveDay = activeDayName;
 }
 
 // Fonction utilitaire pour rafraîchir une jauge circulaire SVG
