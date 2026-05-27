@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nurture — Planificateur de Repas Intelligent</title>
+  <meta name="description" content="Une application moderne de gestion et planification de repas pour suivre vos objectifs nutritionnels avec des recettes saines et un suivi quotidien en temps réel.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom CSS for custom glows and SVG circle transitions -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen text-slate-200 flex flex-col overflow-x-hidden selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- Ambient Light Effects (Background decorative glows) -->
+  <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-pink-900/10 blur-[120px] pointer-events-none"></div>
+
+  <!-- Header -->
+  <header class="border-b border-slate-800/60 bg-slate-950/30 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <span class="text-xl font-bold text-white select-none">N</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            Nurture <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Intelligent</span>
+          </h1>
+          <p class="text-xs text-slate-400">Gestionnaire & Planificateur de Repas de la semaine</p>
+        </div>
+      </div>
+      
+      <!-- Top Action Buttons -->
+      <div class="flex items-center gap-3">
+        <button 
+          onclick="generateFullWeek()" 
+          class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/10 active:scale-95 transition-all cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+          Générer la semaine
+        </button>
+
+        <button 
+          onclick="openShoppingList()" 
+          class="flex items-center gap-2 px-4 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 hover:border-indigo-500/40 text-indigo-300 text-xs font-bold rounded-xl active:scale-95 transition-all cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          Liste de courses
+        </button>
+        
+        <button 
+          onclick="openSettingsModal()" 
+          class="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700/50 text-slate-300 text-xs font-semibold rounded-xl active:scale-95 transition-all cursor-pointer"
+        >
+          <span>⚙️</span> Réglages & Recettes
+        </button>
+        
+        <button 
+          onclick="resetAllData()" 
+          class="flex items-center gap-2 px-4 py-2.5 bg-slate-800/60 hover:bg-red-500/10 border border-slate-700/50 hover:border-red-500/30 text-slate-300 hover:text-red-400 text-xs font-semibold rounded-xl active:scale-95 transition-all cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+    
+    <!-- 1. DASHBOARD METRICS (TOP) -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+      
+      <!-- Card Calories -->
+      <div id="card-cal" class="glass-panel rounded-2xl p-5 border border-slate-800 flex items-center justify-between gap-4 transition-all duration-300">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Calories</span>
+          <span id="val-cal" class="text-sm font-bold text-slate-200">0 / 1400 kcal</span>
+          <span class="text-[10px] text-slate-500">Cible quotidienne</span>
+        </div>
+        <div class="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24">
+          <svg class="w-full h-full" viewBox="0 0 100 100">
+            <circle class="text-slate-800/40" stroke-width="7" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+            <circle id="circle-cal" class="text-indigo-500 progress-ring-circle glow-cal" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center">
+            <span id="percent-cal" class="text-base sm:text-lg font-extrabold text-slate-100">0%</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Kcal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Protéines -->
+      <div id="card-prot" class="glass-panel rounded-2xl p-5 border border-slate-800 flex items-center justify-between gap-4 transition-all duration-300">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Protéines</span>
+          <span id="val-prot" class="text-sm font-bold text-slate-200">0 / 70 g</span>
+          <span class="text-[10px] text-slate-500">Muscle & Satiété</span>
+        </div>
+        <div class="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24">
+          <svg class="w-full h-full" viewBox="0 0 100 100">
+            <circle class="text-slate-800/40" stroke-width="7" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+            <circle id="circle-prot" class="text-emerald-500 progress-ring-circle glow-prot" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center">
+            <span id="percent-prot" class="text-base sm:text-lg font-extrabold text-slate-100">0%</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Prot</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Glucides -->
+      <div id="card-carb" class="glass-panel rounded-2xl p-5 border border-slate-800 flex items-center justify-between gap-4 transition-all duration-300">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Glucides</span>
+          <span id="val-carb" class="text-sm font-bold text-slate-200">0 / 175 g</span>
+          <span class="text-[10px] text-slate-500">Énergie directe</span>
+        </div>
+        <div class="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24">
+          <svg class="w-full h-full" viewBox="0 0 100 100">
+            <circle class="text-slate-800/40" stroke-width="7" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+            <circle id="circle-carb" class="text-amber-500 progress-ring-circle glow-carb" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center">
+            <span id="percent-carb" class="text-base sm:text-lg font-extrabold text-slate-100">0%</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Gluc</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Lipides -->
+      <div id="card-fat" class="glass-panel rounded-2xl p-5 border border-slate-800 flex items-center justify-between gap-4 transition-all duration-300">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Lipides</span>
+          <span id="val-fat" class="text-sm font-bold text-slate-200">0 / 47 g</span>
+          <span class="text-[10px] text-slate-500">Système hormonal</span>
+        </div>
+        <div class="relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24">
+          <svg class="w-full h-full" viewBox="0 0 100 100">
+            <circle class="text-slate-800/40" stroke-width="7" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+            <circle id="circle-fat" class="text-pink-500 progress-ring-circle glow-fat" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center">
+            <span id="percent-fat" class="text-base sm:text-lg font-extrabold text-slate-100">0%</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Lipi</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2. WEEKDAY TABS SELECTION -->
+    <nav class="w-full overflow-x-auto pb-2 flex gap-2 sm:gap-3 scrollbar-thin select-none animate-fade-in" style="animation-delay: 0.1s">
+      <button onclick="setActiveDay('Lundi')" id="tab-Lundi" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Lundi</span>
+        <span id="tab-cal-Lundi" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Lundi" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+      <button onclick="setActiveDay('Mardi')" id="tab-Mardi" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Mardi</span>
+        <span id="tab-cal-Mardi" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Mardi" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+      <button onclick="setActiveDay('Mercredi')" id="tab-Mercredi" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Mercredi</span>
+        <span id="tab-cal-Mercredi" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Mercredi" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+      <button onclick="setActiveDay('Jeudi')" id="tab-Jeudi" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Jeudi</span>
+        <span id="tab-cal-Jeudi" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Jeudi" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+      <button onclick="setActiveDay('Vendredi')" id="tab-Vendredi" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Vendredi</span>
+        <span id="tab-cal-Vendredi" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Vendredi" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+      <button onclick="setActiveDay('Samedi')" id="tab-Samedi" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Samedi</span>
+        <span id="tab-cal-Samedi" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Samedi" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+      <button onclick="setActiveDay('Dimanche')" id="tab-Dimanche" class="px-4 py-3 text-sm font-medium rounded-xl flex flex-col items-center justify-center min-w-[90px] transition-all">
+        <span>Dimanche</span>
+        <span id="tab-cal-Dimanche" class="text-[10px] opacity-60 font-normal">0 kcal</span>
+        <span id="tab-indicator-Dimanche" class="w-2.5 h-2.5 rounded-full mt-1.5 transition-colors"></span>
+      </button>
+    </nav>
+
+    <!-- 3. MAIN SECTION GRID: MEALS (LEFT) & SIDEBAR (RIGHT) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Daily Meal Plan Cards (Left/Center) -->
+      <section class="lg:col-span-2 flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🍽️</span> Planning du jour
+          </h2>
+          <span class="text-xs text-slate-400">Cliquez sur une recette pour voir ses détails</span>
+        </div>
+        
+        <!-- Recettes Grid -->
+        <div id="meals-container" class="grid grid-cols-1 sm:grid-cols-2 gap-5 animate-fade-in" style="animation-delay: 0.2s">
+          <!-- Meal cards rendered dynamically from JS -->
+        </div>
+      </section>
+
+      <!-- Sidebar: Supplements & Day Summary (Right) -->
+      <section class="flex flex-col gap-6 animate-fade-in" style="animation-delay: 0.3s">
+        
+        <!-- Day Table Summary -->
+        <div class="glass-panel rounded-2xl p-5 border border-slate-800">
+          <h3 class="font-bold text-sm text-slate-200 mb-4 flex items-center gap-2">
+            <span>📊</span> Récapitulatif de la journée
+          </h3>
+          <div class="space-y-3.5 text-xs text-slate-300">
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-800/40">
+              <span class="font-semibold">Calories consommées</span>
+              <span id="total-day-cal" class="font-bold text-indigo-400">0 kcal</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-800/40">
+              <span class="font-semibold">Protéines consommées</span>
+              <span id="total-day-prot" class="font-bold text-emerald-400">0g</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-800/40">
+              <span class="font-semibold">Glucides consommés</span>
+              <span id="total-day-carb" class="font-bold text-amber-500">0g</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5">
+              <span class="font-semibold">Lipides consommés</span>
+              <span id="total-day-fat" class="font-bold text-pink-500">0g</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+      
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/50 bg-slate-950/20 py-6 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>© 2026 Nurture. Conçu pour le suivi nutritionnel de précision (1400 kcal | 70g P | 175g G | 47g L).</p>
+      <p class="mt-1 text-slate-600">Stockage local sécurisé dans le navigateur. Pas d'envoi de données vers des serveurs tiers.</p>
+    </div>
+  </footer>
+
+  <!-- ============================================== -->
+  <!-- MODALS SECTION -->
+  <!-- ============================================== -->
+
+  <!-- 1. Modal: Ajouter un Supplément -->
+  <div id="supplement-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-modal-in">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>➕</span> Ajouter un aliment / supplément
+        </h3>
+        <button onclick="closeSupplementModal()" class="text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <form onsubmit="submitSupplementForm(event)" class="space-y-4">
+        <div>
+          <label for="supp-name" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nom de l'aliment</label>
+          <input 
+            type="text" 
+            id="supp-name" 
+            placeholder="Ex: Banane, Poignée d'amandes, Yaourt..." 
+            required 
+            class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none transition-all"
+          >
+        </div>
+
+        <div>
+          <label for="supp-meal-type" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Associer au repas</label>
+          <select 
+            id="supp-meal-type" 
+            required 
+            class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none transition-all cursor-pointer"
+          >
+            <option value="Petit-déjeuner">Petit-déjeuner</option>
+            <option value="Déjeuner">Déjeuner</option>
+            <option value="Collation">Collation</option>
+            <option value="Dîner">Dîner</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="supp-calories" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Calories (kcal)</label>
+            <input 
+              type="number" 
+              id="supp-calories" 
+              placeholder="Ex: 120" 
+              min="0" 
+              required
+              class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none transition-all"
+            >
+          </div>
+          <div>
+            <label for="supp-protein" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Protéines (g)</label>
+            <input 
+              type="number" 
+              id="supp-protein" 
+              placeholder="Ex: 5" 
+              min="0" 
+              step="0.1" 
+              required
+              class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none transition-all"
+            >
+          </div>
+          <div>
+            <label for="supp-carbs" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Glucides (g)</label>
+            <input 
+              type="number" 
+              id="supp-carbs" 
+              placeholder="Ex: 25" 
+              min="0" 
+              step="0.1" 
+              required
+              class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none transition-all"
+            >
+          </div>
+          <div>
+            <label for="supp-fat" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Lipides (g)</label>
+            <input 
+              type="number" 
+              id="supp-fat" 
+              placeholder="Ex: 1" 
+              min="0" 
+              step="0.1" 
+              required
+              class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none transition-all"
+            >
+          </div>
+        </div>
+
+        <div class="pt-4 flex justify-end gap-3">
+          <button 
+            type="button" 
+            onclick="closeSupplementModal()" 
+            class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-xs transition-all cursor-pointer"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-xs transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
+          >
+            Ajouter l'aliment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal: Changer de repas -->
+  <div id="change-meal-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative animate-modal-in">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🔄</span> Remplacer la recette du repas
+        </h3>
+        <button onclick="closeChangeMealModal()" class="text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Meal Selection List -->
+      <div id="change-meal-list" class="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
+        <!-- Rendered dynamically from JS -->
+      </div>
+
+      <div class="pt-5 mt-5 border-t border-slate-800/80 flex justify-end">
+        <button 
+          onclick="closeChangeMealModal()" 
+          class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-xs transition-all cursor-pointer"
+        >
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal: Détail d'une recette -->
+  <div id="details-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-modal-in">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 id="details-title" class="text-base font-bold text-white">Recette</h3>
+          <p id="details-type" class="text-[10px] text-indigo-400 uppercase tracking-widest font-bold mt-0.5">Type de repas</p>
+        </div>
+        <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-4 gap-2 text-center text-[10px] text-slate-400 mb-5 bg-slate-950/50 p-3 rounded-xl border border-slate-850/80">
+        <div>
+          <span id="details-cal" class="block font-bold text-slate-200 text-sm">0</span> Calories
+        </div>
+        <div>
+          <span id="details-prot" class="block font-bold text-emerald-400 text-sm">0g</span> Protéines
+        </div>
+        <div>
+          <span id="details-carb" class="block font-bold text-amber-500 text-sm">0g</span> Glucides
+        </div>
+        <div>
+          <span id="details-fat" class="block font-bold text-pink-500 text-sm">0g</span> Lipides
+        </div>
+      </div>
+
+      <!-- Portion Info Container -->
+      <div id="modal-portion-container" class="mb-5 bg-indigo-950/20 p-3.5 rounded-xl border border-indigo-500/10 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-base select-none">⚖️</span>
+          <div>
+            <h5 class="text-xs font-bold text-slate-200">Portion adaptée</h5>
+            <p class="text-[9px] text-slate-400 mt-0.5">Ajustée automatiquement pour respecter vos apports quotidiens.</p>
+          </div>
+        </div>
+        <span id="modal-portion-text" class="text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-lg shrink-0">100%</span>
+      </div>
+
+      <!-- Ingredients List -->
+      <div class="mb-6">
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Ingrédients & Portions</h4>
+        <ul id="details-ingredients" class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+          <!-- Rendered dynamically -->
+        </ul>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex justify-end">
+        <button 
+          onclick="closeDetailsModal()" 
+          class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-xs text-white transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
+        >
+          J'ai compris
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Modal: Liste de courses -->
+  <div id="shopping-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-modal-in flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between mb-5 shrink-0">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🛒</span> Votre Liste de Courses
+          </h3>
+          <p class="text-[10px] text-slate-400 mt-0.5 font-semibold">Ingrédients cumulés et ajustés selon vos portions de la semaine</p>
+        </div>
+        <button onclick="closeShoppingList()" class="text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Shopping List Content -->
+      <div id="shopping-list-content" class="flex-grow overflow-y-auto pr-1">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="pt-4 mt-5 border-t border-slate-800/80 flex justify-between shrink-0">
+        <button 
+          onclick="copyShoppingList()" 
+          class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 font-semibold rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+        >
+          <span>📋</span> Copier la liste
+        </button>
+        <button 
+          onclick="closeShoppingList()" 
+          class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-xs text-white transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
+        >
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Modal: Réglages & Recettes -->
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative animate-modal-in flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between mb-4 shrink-0">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>⚙️</span> Réglages & Recettes
+          </h3>
+          <p class="text-[10px] text-slate-400 mt-0.5 font-semibold">Gérez vos préférences de repas et vos recettes</p>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex border-b border-slate-800 mb-4 shrink-0">
+        <button 
+          onclick="switchSettingsTab('preferences')" 
+          id="tab-set-pref" 
+          class="flex-1 pb-2.5 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 transition-all cursor-pointer"
+        >
+          Préférences
+        </button>
+        <button 
+          onclick="switchSettingsTab('recipes')" 
+          id="tab-set-rec" 
+          class="flex-1 pb-2.5 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition-all cursor-pointer"
+        >
+          Sélection Plats
+        </button>
+        <button 
+          onclick="switchSettingsTab('create')" 
+          id="tab-set-create" 
+          class="flex-1 pb-2.5 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition-all cursor-pointer"
+        >
+          Créer Recette
+        </button>
+      </nav>
+
+      <!-- Scrollable Tab Content Container -->
+      <div class="flex-grow overflow-y-auto pr-1">
+        
+        <!-- Tab 1: Preferences Panel -->
+        <div id="panel-set-preferences" class="space-y-5 py-2">
+          <div class="glass-panel p-4 rounded-xl border border-slate-800 space-y-4">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Repas à inclure dans la semaine</h4>
+            
+            <label class="flex items-center justify-between p-2.5 bg-slate-950/20 hover:bg-slate-950/40 border border-slate-850 rounded-xl transition-all cursor-pointer">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-slate-200">Petit-déjeuner</span>
+                <span class="text-[9px] text-slate-400 mt-0.5">Activer/Désactiver le petit-déjeuner dans la génération</span>
+              </div>
+              <input 
+                type="checkbox" 
+                id="pref-breakfast" 
+                checked 
+                onchange="updatePreferencesFromUI()" 
+                class="w-4 h-4 rounded text-indigo-600 bg-slate-950 border-slate-800 focus:ring-indigo-500 cursor-pointer accent-indigo-500"
+              >
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 bg-slate-950/20 hover:bg-slate-950/40 border border-slate-850 rounded-xl transition-all cursor-pointer">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-slate-200">Collation / En-cas</span>
+                <span class="text-[9px] text-slate-400 mt-0.5">Activer/Désactiver la collation dans la génération</span>
+              </div>
+              <input 
+                type="checkbox" 
+                id="pref-snack" 
+                checked 
+                onchange="updatePreferencesFromUI()" 
+                class="w-4 h-4 rounded text-indigo-600 bg-slate-950 border-slate-800 focus:ring-indigo-500 cursor-pointer accent-indigo-500"
+              >
+            </label>
+          </div>
+        </div>
+
+        <!-- Tab 2: Recipes Selector Panel -->
+        <div id="panel-set-recipes" class="hidden space-y-4 py-2">
+          <div class="flex items-center justify-between shrink-0">
+            <span class="text-[10px] text-slate-400 font-semibold">Décochez les plats à exclure de la génération automatique :</span>
+            <div class="flex gap-2">
+              <button onclick="toggleAllRecipesCheck(true)" class="text-[9px] text-indigo-400 hover:text-indigo-300 font-bold">Tout cocher</button>
+              <span class="text-[9px] text-slate-600">•</span>
+              <button onclick="toggleAllRecipesCheck(false)" class="text-[9px] text-indigo-400 hover:text-indigo-300 font-bold">Tout décocher</button>
+            </div>
+          </div>
+          <!-- Recipes List Container -->
+          <div id="settings-recipes-list" class="space-y-3">
+            <!-- Rendered dynamically in JS -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Create Recipe Panel -->
+        <div id="panel-set-create" class="hidden space-y-4 py-2">
+          <form onsubmit="submitCustomRecipeForm(event)" class="space-y-4">
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label for="new-rec-name" class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Nom de la recette</label>
+                <input 
+                  type="text" 
+                  id="new-rec-name" 
+                  placeholder="Ex: Porridge pomme cannelle" 
+                  required 
+                  class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none transition-all"
+                >
+              </div>
+              <div>
+                <label for="new-rec-emoji" class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Emoji</label>
+                <input 
+                  type="text" 
+                  id="new-rec-emoji" 
+                  placeholder="Ex: 🥣" 
+                  required 
+                  class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-3 py-2 text-center text-xs text-slate-200 outline-none transition-all"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label for="new-rec-type" class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Type de repas</label>
+              <select 
+                id="new-rec-type" 
+                required 
+                class="w-full bg-slate-950 border border-slate-850 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none cursor-pointer transition-all"
+              >
+                <option value="Petit-déjeuner">Petit-déjeuner</option>
+                <option value="Déjeuner/Dîner">Déjeuner / Dîner</option>
+                <option value="Collation">Collation</option>
+              </select>
+            </div>
+
+            <!-- Ingredients Section -->
+            <div class="border-t border-slate-800/80 pt-3">
+              <div class="flex items-center justify-between mb-3">
+                <h5 class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Ingrédients & Apports</h5>
+                <button 
+                  type="button" 
+                  onclick="addNewIngredientRow()" 
+                  class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-[10px] text-indigo-400 font-bold transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <span>➕</span> Ajouter
+                </button>
+              </div>
+              
+              <!-- Ingredients rows list -->
+              <div id="custom-recipe-ingredients" class="space-y-3.5 max-h-[25vh] overflow-y-auto pr-1">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 flex justify-end gap-2">
+              <button 
+                type="submit" 
+                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-xs text-white transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
+              >
+                💾 Enregistrer la recette
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex justify-end shrink-0">
+        <button 
+          onclick="closeSettingsModal()" 
+          class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-xs transition-all cursor-pointer"
+        >
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="recipes.js?v=2.1"></script>
+  <script src="app.js?v=2.1"></script>
+</body>
+</html>

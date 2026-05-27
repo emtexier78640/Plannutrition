@@ -1,0 +1,10 @@
+{
+  "name": "nurture-meal-planner",
+  "version": "1.0.0",
+  "description": "Planificateur de repas intelligent communautaire",
+  "main": "app.js",
+
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
